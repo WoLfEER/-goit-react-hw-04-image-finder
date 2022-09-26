@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/WoLfEER-WoLfEER-WoLfEER-goit-react-hw-03-image-finder/static/css/main.7acaea2f.css",
+    "main.js": "/WoLfEER-WoLfEER-WoLfEER-goit-react-hw-03-image-finder/static/js/main.462196fc.js",
+    "index.html": "/WoLfEER-WoLfEER-WoLfEER-goit-react-hw-03-image-finder/index.html",
+    "main.7acaea2f.css.map": "/WoLfEER-WoLfEER-WoLfEER-goit-react-hw-03-image-finder/static/css/main.7acaea2f.css.map",
+    "main.462196fc.js.map": "/WoLfEER-WoLfEER-WoLfEER-goit-react-hw-03-image-finder/static/js/main.462196fc.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7acaea2f.css",
+    "static/js/main.462196fc.js"
+  ]
+}
