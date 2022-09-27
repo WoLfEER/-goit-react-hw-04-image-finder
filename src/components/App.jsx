@@ -1,4 +1,5 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
+import { Notify } from 'notiflix';
 import { getImages, resultsQuantity } from 'services/api';
 import { GlobalStyle, Container } from './GlobalStyles';
 import { Searchbar } from 'components/Searchbar';
@@ -7,83 +8,83 @@ import { Modal } from 'components/Modal';
 import { Button } from 'components/Button';
 import { startLoader, stopLoader } from 'components/Loader';
 
-export class App extends Component {
-  state = {
-    images: [],
-    seqrchQuery: '',
-    page: 1,
-    status: 'idle',
-    url: null,
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState('idle');
+  const [selectedImgUrl, setSelectedImgUrl] = useState(null);
 
-  async componentDidUpdate(_, prevState) {
-    const { seqrchQuery, page } = this.state;
+  useEffect(() => {
+    if (!query) return;
 
-    if (seqrchQuery !== prevState.seqrchQuery || page !== prevState.page) {
-      this.setState({ status: 'pending' });
+    const fetchImages = () => {
+      setStatus('pending');
 
-      try {
-        const response = await getImages(seqrchQuery, page);
+      getImages(query, page)
+        .then(response => {
+          if (response.total === 0) {
+            Notify.failure('Sorry, no results matching your request', {
+              clickToClose: true,
+            });
+            setImages([]);
+            throw new Error();
+          }
+          setImages(prevImages => [...prevImages, ...response.hits]);
+          setStatus('resolved');
+        })
+        .catch(error => setStatus('rejected'));
+    };
 
-        if (response.total === 0) {
-          alert('Sorry, no results matching your request', {
-            clickToClose: true,
-          });
-          this.setState({ images: [] });
-          throw new Error();
-        }
+    fetchImages();
+  }, [query, page]);
 
-        this.setState(prevState => ({
-          status: 'resolved',
-          images: [...prevState.images, ...response.hits],
-        }));
-      } catch (error) {
-        this.setState({ status: 'rejected' });
-      }
-    }
-  }
-
-  handleSubmit = seqrchQuery => {
-    if (seqrchQuery === this.state.seqrchQuery) {
-      alert('The search query does`t change', {
+  const handleSubmit = searchQuery => {
+    if (searchQuery === query) {
+      Notify.info('The search query does`t change', {
         clickToClose: true,
       });
       return;
     }
-    this.setState({ seqrchQuery, page: 1, images: [] });
+    setImages([]);
+    setQuery(searchQuery);
+    setPage(1);
   };
 
-  handleLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const handleLoadMore = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  openModal = activeUrl => this.setState({ url: activeUrl });
+  const isLastPage = Math.round(images.length / resultsQuantity) < page;
 
-  closeModal = () => this.setState({ url: '' });
+  const openModal = activeUrl => {
+    startLoader();
+    setSelectedImgUrl(activeUrl);
+    stopLoader();
+  };
 
-  render() {
-    const { images, page, status, url } = this.state;
-    const isLastPage = Math.round(images.length / resultsQuantity) < page;
+  const closeModal = () => {
+    setSelectedImgUrl('');
+  };
 
-    return (
-      <Container>
-        <Searchbar onSubmit={this.handleSubmit} />
-        {status === 'pending' && startLoader()}
-        {(status === 'rejected' && <h1> Ups... something went wrong</h1>) ||
-          stopLoader()}
-        {images.length > 0 && (
-          <ImageGallery hits={images} onPreviewClick={this.openModal} />
-        )}
-        {url && (
-          <Modal activeUrl={url} imgAlt={url} onClose={this.closeModal} />
-        )}
-        {status === 'resolved' && !isLastPage && (
-          <Button onClick={this.handleLoadMore} status={status} />
-        )}
-        <GlobalStyle />
-      </Container>
-    );
-  }
-}
+  return (
+    <Container>
+      <Searchbar onSubmit={handleSubmit} />
+      {status === 'pending' && startLoader()}
+      {(status === 'rejected' && <h1> Ups... something went wrong</h1>) ||
+        stopLoader()}
+      {images.length > 0 && (
+        <ImageGallery hits={images} onPreviewClick={openModal} />
+      )}
+      {selectedImgUrl && (
+        <Modal
+          activeUrl={selectedImgUrl}
+          imgAlt={selectedImgUrl}
+          onClose={closeModal}
+        />
+      )}
+      {!isLastPage && <Button onClick={handleLoadMore} status={status} />}
+      <GlobalStyle />
+    </Container>
+  );
+};

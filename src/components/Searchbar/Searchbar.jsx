@@ -1,4 +1,6 @@
-import { Component } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
+import { Notify } from 'notiflix';
 import { GoSearch } from 'react-icons/go';
 import {
   Header,
@@ -8,49 +10,49 @@ import {
   Input,
 } from './Searchbar.styled';
 
-export class Searchbar extends Component {
-  state = {
-    seqrchQuery: '',
+export const Searchbar = ({ onSubmit }) => {
+  const [query, setQuery] = useState('');
+
+  const handleInputChange = e => {
+    setQuery(e.currentTarget.value.toLowerCase());
   };
 
-  handleInputChange = e => {
-    this.setState({ seqrchQuery: e.currentTarget.value.toLowerCase() });
-  };
-
-  handleSearchSubmit = e => {
+  const handleSearchSubmit = e => {
     e.preventDefault();
 
-    if (this.state.seqrchQuery.trim(' ') === '') {
-      alert('There is nothing to find', {
+    if (query.trim(' ') === '') {
+      Notify.warning('There is nothing to find', {
         clickToClose: true,
       });
       return;
     }
 
-    this.props.onSubmit(this.state.seqrchQuery);
-    this.setState({ seqrchQuery: '' });
+    onSubmit(query);
+    setQuery('');
   };
 
-  render() {
-    return (
-      <Header>
-        <Searchform onSubmit={this.handleSearchSubmit}>
-          <SearchButton type="submit">
-            <BtnIco>
-              <GoSearch />
-            </BtnIco>
-          </SearchButton>
+  return (
+    <Header>
+      <Searchform onSubmit={handleSearchSubmit}>
+        <SearchButton type="submit">
+          <BtnIco>
+            <GoSearch />
+          </BtnIco>
+        </SearchButton>
 
-          <Input
-            value={this.state.seqrchQuery}
-            onChange={this.handleInputChange}
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-          />
-        </Searchform>
-      </Header>
-    );
-  }
-}
+        <Input
+          value={query}
+          onChange={handleInputChange}
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+        />
+      </Searchform>
+    </Header>
+  );
+};
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};
