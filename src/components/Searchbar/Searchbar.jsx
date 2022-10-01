@@ -44,7 +44,7 @@ export const Searchbar = ({ onSubmit }) => {
           value={query}
           onChange={handleInputChange}
           type="text"
-          autoComplete="off"
+          autoComplete="on"
           autoFocus
           placeholder="Search images and photos"
         />
